@@ -1,0 +1,30 @@
+Версию openwrt, таргет, сабтаргет можно выбрать тут:
+https://downloads.openwrt.org/releases/
+
+=======================================================
+
+./compile.sh -v v19.07.1 -t ipq40xx -s mikrotik -j 6 -l
+
+-v v19.07.1     -       Версия openwrt, для git checkout. (Должна содержать 'v' в начале)
+-t ipq40xx      -       Таргет ipq40xx
+-s mikrotik     -       Сабтаргет (если не указать, будет дефолтный)
+-j 6            -       Количество потоков при компиляции
+-l              -       Добавить пакет вебморды (LUCI) в прошивку. По дефолту она не включена
+
+
+=======================================================
+
+./compile.sh -k git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git -r v4.14.167 -v v18.06.7 -t bcm53xx -j 6 -l
+
+-k git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git
+Можно указать гит с ядром
+-r v4.14.167
+Git ref, версия ядра, на которую будет checkout
+-v v18.06.7
+Версия openwrt, для git checkout. (Должна содержать 'v' в начале)
+-t bcm53xx
+Таргет bcm53xx
+-j 6
+Количество потоков при компиляции   
+-l
+Добавить пакет вебморды (LUCI) в прошивку. По дефолту ее нет                                              
