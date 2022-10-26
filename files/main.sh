@@ -63,8 +63,6 @@ make defconfig
 # Clean previous compilation results
 make clean
 
-exit 1;
-
 # Compilation
 echo "Using $JOBS jobs"
 make -j$JOBS V=s
