@@ -1,12 +1,16 @@
 #!/bin/bash
 
-# Cloning openwrt from github
+# Git setup
 git config --global http.sslverify false
+git config --global user.email "default@gmail.com"
+git config --global user.name "Default Name"
+
+# Cloning openwrt from github
 git clone https://github.com/openwrt/openwrt.git openwrt
 
 # Checkout version and download packages
 cd openwrt
-git checkout $VERSION ./include/kernel-defaults.mk
+#git checkout $VERSION ./include/kernel-defaults.mk
 git checkout $VERSION
 ./scripts/feeds update -a
 ./scripts/feeds install -a
@@ -19,6 +23,8 @@ else
     cp ../kernel-git-force-patches.patch .
     patch ./include/kernel-defaults.mk  < kernel-git-force-patches.patch
 fi
+git add ./include/kernel-defaults.mk
+git commit -m "kernel-defaults.mk patched"
 
 # Generating emulation target/subtarget openwrt .config
 # and parsing default packages
@@ -62,6 +68,7 @@ make defconfig
 
 # Clean previous compilation results
 make clean
+rm -rf ./bin
 
 # Compilation
 echo "Using $JOBS jobs"
