@@ -3,7 +3,6 @@
 TARGET=armvirt
 ARCH=armvirt
 SUBTARGET=-1
-#PROFILE=-1
 VERSION=-1
 KERNEL_GIT=-1
 KERNEL_GIT_REF=-1
@@ -102,5 +101,54 @@ fi
 
 mkdir -p result/$ARCH
 
-docker cp docker_script-$DEBIANVER:/script/openwrt/bin/targets/$ARCH ./result/$ARCH/$VERSION-$TARGET-$SUBTARGET/
+rm -rf ./result/$ARCH/$VERSION-$TARGET-$SUBTARGET
+docker cp docker_script-$DEBIANVER:/script/openwrt/bin/targets/$ARCH ./result/$ARCH/$VERSION-$TARGET-$SUBTARGET
 docker rm docker_script-$DEBIANVER
+
+# QEMU run script generation
+cd ./result/$ARCH/$VERSION-$TARGET-$SUBTARGET
+KERNEL_NAME=-1
+if [ $ARCH == armvirt ]; then
+    QEMU_ARCH=arm
+    MACHINE=virt-2.7
+    NOGRAPHIC=-nographic
+    APPEND="root=/dev/vda"
+    KERNEL_NAME=zImage
+    HDA_NAME=ext4
+elif [ $ARCH == x86 ]; then
+    QEMU_ARCH=x86_64
+    APPEND="root=/dev/sda"
+    KERNEL_NAME=vmlinuz
+    HDA_NAME=rootfs-ext4
+else
+    echo "Error: unknown target. QEMU run script won't be generated."
+    exit 1
+fi
+
+KERNEL=$(find . -name *$KERNEL_NAME)
+if [ KERNEL == "" ]; then
+    echo "Error: can't find kernel file. Maybe compilation was unsuccessful."
+    exit 1
+fi
+
+HDA=$(find . -name *$HDA_NAME*)
+gunzip $HDA
+HDA=$(find . -name *$HDA_NAME*)
+
+if [ HDA == "" ]; then
+    echo "Error: can't find filesystem file. Maybe compilation was unsuccessful."
+    exit 1
+fi
+
+cat > run.sh << EOF
+qemu-system-$QEMU_ARCH \
+-M $MACHINE \
+-m 256 \
+-device virtio-net,netdev=net0 -netdev user,id=net0,net=192.168.1.0/24,hostfwd=tcp:127.0.0.1:11122-192.168.1.1:22,hostfwd=tcp:127.0.0.1:11180-192.168.1.1:80 \
+-device virtio-net,netdev=net1 -netdev user,id=net1,net=192.0.2.0/24 \
+-kernel $KERNEL \
+-hda $HDA \
+-append $APPEND $NOGRAPHIC
+EOF
+
+chmod +x run.sh
